@@ -1,0 +1,36 @@
+[
+  {
+    "finding_id": "demo-1",
+    "rule": "java/sql-injection",
+    "file": "src/main/java/com/example/claims/ClaimLookupDao.java",
+    "expect": {
+      "build_passes": true,
+      "source_must_contain": ["PreparedStatement", "setString("],
+      "source_must_not_contain": ["+ memberId +"],
+      "new_test": "src/test/java/com/example/claims/ClaimLookupDaoTest.java",
+      "max_attempts": 2
+    }
+  },
+  {
+    "finding_id": "demo-2",
+    "rule": "java:S2245",
+    "file": "src/main/java/com/example/claims/ReferenceNumberGenerator.java",
+    "expect": {
+      "build_passes": true,
+      "source_must_contain": ["SecureRandom"],
+      "source_must_not_contain": ["import java.util.Random;"],
+      "max_attempts": 1
+    }
+  },
+  {
+    "finding_id": "demo-3",
+    "rule": "java:S108",
+    "file": "src/main/java/com/example/claims/AccumulatorCalculator.java",
+    "expect": {
+      "build_passes": true,
+      "source_must_contain": ["throw new"],
+      "new_test": "src/test/java/com/example/claims/AccumulatorCalculatorTest.java",
+      "max_attempts": 2
+    }
+  }
+]
