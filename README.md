@@ -22,13 +22,14 @@ just ask: "fix the Sonar findings in this repo".
 ## Install
 
 Requirements on the machine: Python 3.9+, Java 17+, Maven, git (`gh` only for real PRs), and a
-POSIX shell for the hook (macOS / Linux / WSL). Replace `<owner>/code-quality-skill` with the GitHub
-repository you push this to.
+POSIX shell for the hook (macOS / Linux / WSL). The plugin is published from
+[apodalakuru/code-quality-skill](https://github.com/apodalakuru/code-quality-skill); if you fork it,
+use your fork's `owner/repo` in the commands below.
 
 | Tool | Install |
 |---|---|
-| **Claude Code** | `/plugin marketplace add <owner>/code-quality-skill` then `/plugin install code-quality-fix@code-quality` (or `claude plugin install code-quality-fix@code-quality` after `claude plugin marketplace add ...`) |
-| **GitHub Copilot CLI** | `copilot plugin install <owner>/code-quality-skill:plugins/code-quality-fix`, or `copilot plugin marketplace add <owner>/code-quality-skill` then `copilot plugin install code-quality-fix@code-quality` |
+| **Claude Code** | `/plugin marketplace add apodalakuru/code-quality-skill` then `/plugin install code-quality-fix@code-quality` (or `claude plugin install code-quality-fix@code-quality` after `claude plugin marketplace add ...`) |
+| **GitHub Copilot CLI** | `copilot plugin install apodalakuru/code-quality-skill:plugins/code-quality-fix`, or `copilot plugin marketplace add apodalakuru/code-quality-skill` then `copilot plugin install code-quality-fix@code-quality` |
 | **Cursor** | Publish the repo (it carries `.cursor-plugin/marketplace.json`) through cursor.com/marketplace/publish or your team's plugin distribution, or for local testing copy `plugins/code-quality-fix` into Cursor's local plugins folder and run *Developer: Reload Window* |
 | **Other Agent Skills tools** | Copy `plugins/code-quality-fix/skills/code-quality-fix/` into the tool's skills folder. You get the skill and the script guardrails, but not the hook |
 
