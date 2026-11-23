@@ -1,0 +1,17 @@
+{
+  "description": "code-quality-fix guard: during a fix session, only src/{main,test}/java/**/*.java may be written and git history changes must go through git_fix.py",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "G=\"${CLAUDE_PLUGIN_ROOT:-${COPILOT_PLUGIN_ROOT:-$PLUGIN_ROOT}}/hooks/guard.py\"; [ -f \"$G\" ] || exit 0; exec python3 \"$G\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
