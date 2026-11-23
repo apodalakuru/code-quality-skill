@@ -13,7 +13,8 @@ TEMPLATE=demo-java-app
 WORK=.work/demo-java-app
 
 if [ "${1:-}" = "--reset" ]; then
-  rm -rf "$WORK" .claude/.ai-fix-active
+  rm -rf "$WORK"
+  rm -f "${CODE_QUALITY_FIX_HOME:-$HOME/.code-quality-fix}"/active/*.json  # stale fix-session guard markers
   echo "Removed $WORK."
 fi
 
@@ -36,4 +37,5 @@ fi
 (cd "$WORK" && mvn -B -q test) && echo "Demo app builds and its tests pass."
 
 echo
-echo "Next: open Claude Code in $(pwd) and run:  /code-quality-fix file 3"
+echo "Next: claude --plugin-dir ./plugins/code-quality-fix"
+echo "then: /code-quality-fix:code-quality-fix file 3"

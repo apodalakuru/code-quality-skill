@@ -12,6 +12,7 @@ so it never shows up in a diff or a commit.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -19,8 +20,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-PROJECT_DIR = Path(__file__).resolve().parents[4]          # .../code-quality-skill
-ACTIVE_MARKER = PROJECT_DIR / ".claude" / ".ai-fix-active"  # read by the guard hook
+# While a session runs, a marker file per target repo lives here. The guard hook (hooks/guard.py)
+# reads the same directory, so it works wherever the plugin is installed (Claude Code, Copilot, Cursor).
+STATE_HOME = Path(os.environ.get("CODE_QUALITY_FIX_HOME") or Path.home() / ".code-quality-fix")
+ACTIVE_DIR = STATE_HOME / "active"
+DEMO_REPO = Path(".work") / "demo-java-app"
 
 BRANCH_PATTERN = re.compile(r"^ai-fix/[A-Za-z0-9._\-/]{1,80}$")
 WRITABLE_PREFIXES = ("src/main/java/", "src/test/java/")
@@ -33,11 +37,14 @@ BUILD_TIMEOUT_SEC = int(os.environ.get("BUILD_TIMEOUT_SEC", "900"))
 
 
 def repo_root(arg: str | None = None) -> Path:
-    """--repo argument, else REPO_ROOT, else the demo working copy. Relative paths resolve from the project dir."""
-    raw = arg or os.environ.get("REPO_ROOT") or ".work/demo-java-app"
-    p = Path(raw)
+    """--repo argument, else REPO_ROOT, else the demo working copy if present, else the current directory.
+    Relative paths resolve from the current directory (the project the agent is working in)."""
+    raw = arg or os.environ.get("REPO_ROOT")
+    if not raw:
+        raw = str(DEMO_REPO) if (Path.cwd() / DEMO_REPO / ".git").exists() else "."
+    p = Path(raw).expanduser()
     if not p.is_absolute():
-        p = PROJECT_DIR / p
+        p = Path.cwd() / p
     p = p.resolve()
     if not (p / ".git").exists():
         fail(f"{p} is not a git repository (run setup_demo.sh for the demo app)")
@@ -72,6 +79,21 @@ def is_writable(repo: Path, path: str) -> bool:
         return False
     norm = p.relative_to(repo).as_posix()
     return norm.startswith(WRITABLE_PREFIXES) and norm.endswith(".java")
+
+
+# ------------------------------------------------------------------ guard marker
+def marker_path(repo: Path) -> Path:
+    return ACTIVE_DIR / (hashlib.sha256(str(repo).encode("utf-8")).hexdigest()[:16] + ".json")
+
+
+def activate_guard(repo: Path) -> None:
+    ACTIVE_DIR.mkdir(parents=True, exist_ok=True)
+    marker_path(repo).write_text(json.dumps({"repo": str(repo), "project": str(Path.cwd().resolve())}),
+                                 encoding="utf-8")
+
+
+def deactivate_guard(repo: Path) -> None:
+    marker_path(repo).unlink(missing_ok=True)
 
 
 # ------------------------------------------------------------------ session state

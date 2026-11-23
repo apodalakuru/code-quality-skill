@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "G=\"${CURSOR_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"; [ -f \"$G\" ] || exit 0; exec python3 \"$G\"",
+        "timeout": 30
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "G=\"${CURSOR_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"; [ -f \"$G\" ] || exit 0; exec python3 \"$G\"",
+        "timeout": 30
+      }
+    ]
+  }
+}

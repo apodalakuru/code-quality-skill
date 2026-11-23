@@ -1,0 +1,18 @@
+{
+  "name": "code-quality-fix",
+  "version": "1.0.0",
+  "description": "Fix SonarQube / CodeQL findings in Java Maven projects one at a time: smallest safe change plus a JUnit 5 test, verified by a green Maven build, committed or opened as a PR only after you approve the diff.",
+  "author": {
+    "name": "Anilkumar Podalakuru"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sonarqube",
+    "codeql",
+    "static-analysis",
+    "java",
+    "maven",
+    "junit",
+    "remediation"
+  ]
+}

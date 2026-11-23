@@ -4,8 +4,6 @@ __pycache__/
 *.pyc
 target/
 .env
-# set while a fix session is running; read by the guard hook
-.claude/.ai-fix-active
 .claude/settings.local.json
 # working copy of the demo app (its own git repo), created by setup_demo.sh
 .work/

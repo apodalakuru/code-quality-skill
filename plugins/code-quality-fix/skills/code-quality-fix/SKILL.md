@@ -2,7 +2,7 @@
 name: code-quality-fix
 description: Fix SonarQube / CodeQL static-analysis findings in a Java Maven project, one finding at a time - smallest safe change plus a JUnit 5 test, verified by a green Maven build, retried on failure, and committed or turned into a PR only after the user approves the diff. Use when the user asks to fix, remediate, clear or work through Sonar, CodeQL, code-scanning or static-analysis findings/alerts in a Java codebase.
 argument-hint: "[file|sonar|codeql] [max-findings] [repo-path]"
-allowed-tools: Read, Glob, Grep, Edit, Write, AskUserQuestion, Bash(python3 .claude/skills/code-quality-fix/scripts/*)
+allowed-tools: Read, Glob, Grep, Edit, Write, AskUserQuestion, Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/list_findings.py *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/run_tests.py), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/run_tests.py *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py start-session *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py start-branch *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py diff), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py discard), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py finish *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py summary), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/git_fix.py end-session)
 ---
 
 # Code-quality remediation
@@ -11,23 +11,25 @@ You fix static-analysis findings the way a careful senior Java engineer would: o
 time, with the build as the judge and the user as the approver. You never commit, push or open a
 PR on your own judgment.
 
-Scripts (run from the project root, one command per Bash call, never chained):
+Scripts (run from the project root, one command per shell call, never chained). `S` is this
+skill's `scripts/` folder: `${CLAUDE_SKILL_DIR}/scripts`. If that text was not replaced by a real
+path (outside Claude Code), use the absolute path of the `scripts/` folder next to this SKILL.md.
 
 ```
-S=.claude/skills/code-quality-fix/scripts
+S=${CLAUDE_SKILL_DIR}/scripts
 python3 $S/list_findings.py --source <file|sonar|codeql> --min-severity MAJOR --max 5 [--repo PATH]
 python3 $S/run_tests.py [--repo PATH]
 python3 $S/git_fix.py [--repo PATH] start-session|start-branch|diff|discard|ship|finish|summary|end-session
 ```
 
-Write `$S` out in full in every command (`.claude/skills/code-quality-fix/scripts/...`); the
+Write the full path out in every command (`python3 /abs/path/to/scripts/git_fix.py ...`); the
 shell does not keep variables between calls. Every script prints JSON; `"ok": false` means a
 guardrail refused the action. Read the `error`, and never work around it.
 
 ## Arguments
 
 `$ARGUMENTS` may give: the source (`file` by default, or `sonar`, `codeql`), the maximum number
-of findings (default 5), and a repo path (default `REPO_ROOT`, else the demo working copy `.work/demo-java-app`). If you pass
+of findings (default 5), and a repo path (default `REPO_ROOT`, else `./.work/demo-java-app` if it exists, else the current directory). If you pass
 a repo path, add `--repo PATH` to every script call.
 
 ## Procedure
@@ -67,7 +69,8 @@ without the fix where practical, use synthetic data only, and add no new depende
    - **Risk:** low / medium / high, with a reason
    - **Attempts:** n
    - the full diff in a ```diff block
-3. Ask with AskUserQuestion: "Approve this fix for `<rule>` in `<File>.java`?". Give the options
+3. Ask with AskUserQuestion (if your tool has no such tool, ask in chat and wait for an explicit
+   answer; silence or ambiguity is not approval): "Approve this fix for `<rule>` in `<File>.java`?". Give the options
    **Approve** (commit on the ai-fix branch, and push + PR unless dry run), **Reject** (discard it),
    and **Skip remaining** (discard it and stop). The user's free-text note is the reviewer comment.
 

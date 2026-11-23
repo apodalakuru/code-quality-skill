@@ -12,7 +12,7 @@ Guarded git operations for the code-quality-fix skill.
   git_fix.py summary                                results so far
   git_fix.py end-session                            back to base, deactivate the write guard
 
-All commands accept --repo PATH (default: REPO_ROOT, else .work/demo-java-app).
+All commands accept --repo PATH (default: REPO_ROOT, else ./.work/demo-java-app if present, else .).
 Every refusal prints {"ok": false, "error": ...} and exits non-zero.
 """
 from __future__ import annotations
@@ -21,8 +21,8 @@ import argparse
 import hashlib
 import re
 
-from common import (ACTIVE_MARKER, BRANCH_PATTERN, DRY_RUN, MAX_ATTEMPTS, fail, git, is_writable,
-                    load_state, ok, repo_root, run, save_state, state_path)
+from common import (BRANCH_PATTERN, DRY_RUN, MAX_ATTEMPTS, activate_guard, deactivate_guard, fail, git,
+                    is_writable, load_state, ok, repo_root, run, save_state, state_path)
 
 
 def _slug(text: str) -> str:
@@ -84,8 +84,7 @@ def start_session(repo, a) -> None:
     git(repo, "rev-parse", "--verify", a.base)
     git(repo, "checkout", a.base)
     save_state(repo, {"base": a.base, "attempts": {}, "results": [], "current": None})
-    ACTIVE_MARKER.parent.mkdir(parents=True, exist_ok=True)
-    ACTIVE_MARKER.write_text(str(repo), encoding="utf-8")
+    activate_guard(repo)
     ok(repo=str(repo), base=a.base, dry_run=DRY_RUN, max_attempts=MAX_ATTEMPTS)
 
 
@@ -173,7 +172,7 @@ def end_session(repo, a) -> None:
         if not _changed_paths(repo):
             git(repo, "checkout", state["base"])
         state_path(repo).unlink()
-    ACTIVE_MARKER.unlink(missing_ok=True)
+    deactivate_guard(repo)
     ok(message="session ended; write guard off", results=results)
 
 
